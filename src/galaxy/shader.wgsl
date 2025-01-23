@@ -6,48 +6,48 @@ struct Uniforms {
 @group(0) @binding(0) var<uniform> uni: Uniforms;
 
 struct VertexOutput {
-    @builtin(position) position: vec4<f32>,
-    @location(0) color: vec4<f32>,
+    @builtin(position) position: vec4f,
+    @location(0) color: vec4f,
 }
 
 struct OrbitOutput {
-    position: vec3<f32>,
+    position: vec3f,
     pullStrength: f32,
 }
 
-fn superNova(position: vec3<f32>, time: f32) -> OrbitOutput {
+fn superNova(position: vec3f, time: f32) -> OrbitOutput {
     let dist = length(position);
     let maxDist = 3.5;
     let rotationSpeed = 0.3;
     let angle = time * rotationSpeed * (1.0 + (1.0 - dist / maxDist) * 2.0);
-    let rotX = vec3<f32>(cos(angle), 0.0, -sin(angle));
-    let rotZ = vec3<f32>(sin(angle), 0.0, cos(angle));
+    let rotX = vec3f(cos(angle), 0.0, -sin(angle));
+    let rotZ = vec3f(sin(angle), 0.0, cos(angle));
     var newPos = position;
-    newPos = vec3<f32>(
-        dot(vec3<f32>(rotX.x, rotX.y, rotX.z), newPos),
+    newPos = vec3f(
+        dot(vec3f(rotX.x, rotX.y, rotX.z), newPos),
         newPos.y,
-        dot(vec3<f32>(rotZ.x, rotZ.y, rotZ.z), newPos)
+        dot(vec3f(rotZ.x, rotZ.y, rotZ.z), newPos)
     );
     let pullStrength = 0.4 * (1.0 - dist / maxDist) * time;
     let easeOut = 1.0 - (1.0 - pullStrength) * (1.0 - pullStrength);
-    newPos = mix(newPos, vec3<f32>(0.0), easeOut);
+    newPos = mix(newPos, vec3f(0.0), easeOut);
     var orbitOutput: OrbitOutput;
     orbitOutput.position = newPos;
     orbitOutput.pullStrength = pullStrength;
     return orbitOutput;
 }
 
-fn instanceBlackSphere(position: vec3<f32>) -> VertexOutput {
+fn instanceBlackSphere(position: vec3f) -> VertexOutput {
     var output: VertexOutput;
     let sphereRadius = 0.2;
     let spherePosition = normalize(position) * sphereRadius;
-    output.position = uni.viewProjection * vec4<f32>(spherePosition, 1.0);
-    output.color = vec4<f32>(0.0, 0.0, 0.0, 1.0);
+    output.position = uni.viewProjection * vec4f(spherePosition, 1.0);
+    output.color = vec4f(0.0, 0.0, 0.0, 1.0);
     return output;
 }
 
 @vertex
-fn vertexMain(@location(0) position: vec3<f32>) -> VertexOutput {
+fn vertexMain(@location(0) position: vec3f) -> VertexOutput {
     var output: VertexOutput;
 
     let orbitOutput = superNova(position, uni.time);
@@ -63,8 +63,8 @@ fn vertexMain(@location(0) position: vec3<f32>) -> VertexOutput {
     let intensity = 1.0 + (1.0 - distRatio) * 2.0;
     let alpha = mix(0.3, 1.0, 1.0 - distRatio);
 
-    output.position = uni.viewProjection * vec4<f32>(orbitOutput.position, 1.0);
-    output.color = vec4<f32>(r * intensity, g * intensity, b * intensity, alpha);
+    output.position = uni.viewProjection * vec4f(orbitOutput.position, 1.0);
+    output.color = vec4f(r * intensity, g * intensity, b * intensity, alpha);
      let blackSphereOutput = instanceBlackSphere(orbitOutput.position);
 
     if orbitOutput.pullStrength > 5 {
@@ -96,6 +96,6 @@ fn vertexMain(@location(0) position: vec3<f32>) -> VertexOutput {
 }
 
 @fragment
-fn fragmentMain(@location(0) color: vec4<f32>) -> @location(0) vec4<f32> {
+fn fragmentMain(@location(0) color: vec4f) -> @location(0) vec4f {
     return color;
 }
